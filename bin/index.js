@@ -21,6 +21,24 @@ const keypress = async () => {
   }))
 }
 
+// Helper function for error handling
+const handleErrorResponse = (error) => {
+  // Error
+  if (error.response) {
+      //  The request was made and the server responded with a status code that falls out of the range of 2xx
+      console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.headers);
+  } else if (error.request) {
+      // The request was made but no response was received
+      console.log(error.request);
+  } else {
+      // Something happened in setting up the request and triggered an Error
+      console.log('Error', error.message);
+  }
+  console.log(error.config);
+}
+
 // Run 
 (async () => {
   let done = false;
@@ -29,7 +47,7 @@ const keypress = async () => {
     // query compares open time and closing time and day to the current time. 
     // The OR statement catches places that are already open but close after midnight which would give them a close time less than now
     // sort by name, limit to ten and a variable offset so we can page through
-    const url = `https://data.sfgov.org/resource/jjew-r69b.json?$query=
+    const url = `https://data.sfgovorg/resource/jjew-r69b.json?$query=
       SELECT applicant AS NAME, location AS ADDRESS
       WHERE (start24<='${timeString}' AND end24>='${timeString}' AND dayorder=${today})
       OR (start24='${timeString}' AND end24<=start24 AND dayorder=${today})       
@@ -37,8 +55,9 @@ const keypress = async () => {
       LIMIT 10
       OFFSET ${offset}`;
 
-    axios.get(url, { headers: { Accept: "application/json" } })
+    axios.get(url, { })
     .then(res => {
+      // our control statement for the loop
       if(res.data.length < 10){
         done = true;
         if(res.data.length !== 0) console.log(res.data);
@@ -46,10 +65,11 @@ const keypress = async () => {
       } else {
         offset += 10;
         console.log(res.data);
-        console.log('Press any key for 10 more or CTL c to quit');
+        console.log('Press any key for 10 more or CTL C to quit');
       }
     })
-    .catch(err => err);
+    .catch(err => handleErrorResponse(err));
+
     await keypress();
   }
 
